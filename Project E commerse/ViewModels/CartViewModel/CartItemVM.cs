@@ -11,6 +11,7 @@
         public decimal LineTotal => UnitPrice * Quantity;
         public int StockQuantity { get; set; }
         public bool IsAvailable => StockQuantity > 0;
+        public string CategoryName { get; set;}
 
     }
 }

@@ -58,5 +58,34 @@ namespace Project_E_commerse.Services.Product
                 query = query.Where(p => p.ProductId != excludeId.Value);
             return !await query.AnyAsync();
         }
+
+        public async Task<(Project_E_commerse.Models.Product? product, string msg)> AddProductAsync(Project_E_commerse.Models.Product product)
+        {
+            return await AddAsync(product, c => c.ProductId == product.ProductId);
+        }
+        public async Task UpdateAsync(Project_E_commerse.Models.Product product)
+        {
+            var existingProduct = await _context.Products
+                .FindAsync(product.ProductId);
+
+            if (existingProduct == null)
+                return;
+
+            existingProduct.Name = product.Name;
+            existingProduct.CategoryId = product.CategoryId;
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<IEnumerable<Project_E_commerse.Models.Product>> GetProductsByCategoryAsync(int categoryId)
+        {
+            return await _dbSet
+                .Include(p => p.Category)
+                .Where(p => p.CategoryId == categoryId)
+                .OrderBy(p => p.Name)
+                .ToListAsync();
+        }
+
+
     }
 }

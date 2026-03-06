@@ -25,7 +25,8 @@ namespace Project_E_commerse.ViewModels.ProductListVM.ProductListVM
         public decimal? MaxPrice { get; set; }
         public bool? IsActive { get; set; }
         public string? SortBy { get; set; }
+        public bool InStockOnly { get; set; }
 
-    
-}
+
+    }
 }

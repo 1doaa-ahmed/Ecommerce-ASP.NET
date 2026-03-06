@@ -14,8 +14,11 @@ namespace Project_E_commerse.Services.Admin
     public class AdminService : Repository<Project_E_commerse.Models.Address>, IAdminService
     {
         private readonly ApplicationDbContext _context;
-        public AdminService(ApplicationDbContext context) : base(context) { }
 
+        public AdminService(ApplicationDbContext context) : base(context)
+        {
+            _context = context;
+        }
         //Products
         public async Task<(IEnumerable<Project_E_commerse.Models.Product>? products, string msg)> GetAllProductsAsync()
         {

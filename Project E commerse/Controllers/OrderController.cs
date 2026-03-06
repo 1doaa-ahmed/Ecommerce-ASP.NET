@@ -1,12 +1,14 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Project_E_commerse.ViewModels;
 using Project_E_commerse.Models;
-using System.Security.Claims;
-using Project_E_commerse.ViewModels.CheckoutViewModel;
 using Project_E_commerse.Services.Cart;
 using Project_E_commerse.Services.Order;
+using Project_E_commerse.ViewModels;
+using Project_E_commerse.ViewModels.CartViewModel;
+using Project_E_commerse.ViewModels.CheckoutViewModel;
+using System.Security.Claims;
 
 namespace Project_E_commerse.Controllers
 {
@@ -16,17 +18,19 @@ namespace Project_E_commerse.Controllers
         private readonly IOrderService _orderService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ICartService _cartService;
+        private readonly IMapper _mapper;
 
         public OrderController(
     ILogger<OrderController> logger,
     IOrderService orderService,
     ICartService cartService,
-    UserManager<ApplicationUser> userManager)
+    UserManager<ApplicationUser> userManager , IMapper mapper)
         {
             _logger = logger;
             _orderService = orderService;
             _cartService = cartService;
             _userManager = userManager;
+            _mapper = mapper;
         }
 
         public IActionResult Index()
@@ -52,10 +56,13 @@ namespace Project_E_commerse.Controllers
                 .Include(u => u.Addresses)
                 .FirstOrDefaultAsync(u => u.Id == userId);
             // 4. Build ViewModel
+            var cartVm = _mapper.Map<CartVM>(cart);
+            var addressesVm = _mapper.Map<IEnumerable<AddressVM>>(user?.Addresses);
+
             var viewModel = new CheckoutVM
             {
-                //Cart = cart,
-                //Addresses = user?.Addresses,
+                Cart = cartVm,
+                Addresses = addressesVm ?? new List<AddressVM>(),
             };
 
             return View(viewModel);

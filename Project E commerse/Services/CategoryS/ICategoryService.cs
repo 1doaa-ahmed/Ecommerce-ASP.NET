@@ -10,5 +10,6 @@ namespace Project_E_commerse.Services.Category
         Task<Project_E_commerse.Models.Category?> GetDetailsById(int categoryId);
         Task DeleteAsync(int id);
         Task UpdateAsync(Models.Category category);
+        Task<(Models.Category? category, string msg)> AddCategoryAsync(Models.Category category);
     }
 }

@@ -6,6 +6,7 @@ namespace Project_E_commerse.Models
     public class Product
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int ProductId { get; set; }
 
         [Required]
@@ -33,7 +34,7 @@ namespace Project_E_commerse.Models
 
         [ForeignKey("CategoryId")]
         public Category? Category { get; set; }
-
+      
         public ICollection<OrderItem>? OrderItems { get; set; }
     }
 }

@@ -2,6 +2,7 @@
 using Project_E_commerse.Data;
 using Project_E_commerse.Models;
 using Project_E_commerse.Repositories;
+using System.Linq.Expressions;
 
 namespace Project_E_commerse.Services.Category
 {
@@ -29,7 +30,7 @@ namespace Project_E_commerse.Services.Category
                 .OrderBy(c => c.Name)
                 .ToListAsync();
         }
-
+      
         public async Task<IEnumerable<Project_E_commerse.Models.Category>> GetSubCategoriesAsync(int parentId)
         {
             return await _dbSet
@@ -67,6 +68,11 @@ namespace Project_E_commerse.Services.Category
             existingCategory.ParentCategoryId = category.ParentCategoryId;
 
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<(Project_E_commerse.Models.Category? category, string msg)> AddCategoryAsync(Project_E_commerse.Models.Category category)
+        {
+            return await AddAsync(category, c => c.Name == category.Name);
         }
     }
 }

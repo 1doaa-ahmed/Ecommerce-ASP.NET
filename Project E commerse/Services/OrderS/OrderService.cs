@@ -8,8 +8,17 @@ namespace Project_E_commerse.Services.Order
 {
     public class OrderService : Repository<Project_E_commerse.Models.Order>, IOrderService
     {
-        public OrderService(ApplicationDbContext context) : base(context) { }
+        private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+
+
+
+        public OrderService(ApplicationDbContext context, UserManager<ApplicationUser> userManager) : base(context)
+        {
+            _context = context;
+            _userManager = userManager; 
+        }
+
 
         public async Task<IEnumerable<Project_E_commerse.Models.Order>> GetByUserAsync(string userId)
             => await _dbSet

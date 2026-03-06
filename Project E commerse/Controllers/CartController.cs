@@ -1,12 +1,14 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Project_E_commerse.ViewModels;
 using Project_E_commerse.Models;
-using System.Security.Claims;
-using Project_E_commerse.ViewModels.ProductListVM.ProductListVM;
 using Project_E_commerse.Services.Cart;
 using Project_E_commerse.Services.Order;
+using Project_E_commerse.ViewModels;
+using Project_E_commerse.ViewModels.CartViewModel;
+using Project_E_commerse.ViewModels.ProductListVM.ProductListVM;
+using System.Security.Claims;
 
 namespace Project_E_commerse.Controllers
 {
@@ -15,14 +17,15 @@ namespace Project_E_commerse.Controllers
         private readonly ILogger<CartController> _logger;
         private readonly ICartService _cartService;
         private readonly IOrderService _orderService;
-
+        private readonly IMapper _mapper;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public CartController(ILogger<CartController> logger, ICartService cartService , IOrderService orderService )
+        public CartController(ILogger<CartController> logger, ICartService cartService , IOrderService orderService  , IMapper mapper)
         {
             _logger = logger;
             _cartService = cartService;
             _orderService = orderService;
+            _mapper = mapper;
         }
 
         [HttpGet]
@@ -31,11 +34,13 @@ namespace Project_E_commerse.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null)
                 return RedirectToAction("Login", "Account");
-            var (orders, msg) = await _orderService.GetUserOrdersAsync(userId);
+            var (cart, msg) = await _cartService.GetCartByUserAsync(userId);
             ViewBag.Message = msg;
-            if (orders == null)
-                return View(new List<Order>());
-            return View(orders);
+            if (cart == null)
+                return View(new List<Cart>());
+
+            var cartVm = _mapper.Map<CartVM>(cart);
+            return View(cartVm);
         }
 
         [HttpGet]
@@ -61,35 +66,21 @@ namespace Project_E_commerse.Controllers
 
             return RedirectToAction("Index", "Cart");
         }
-        public async Task<ProductVM> Update(Product product, int qty)
+        [HttpPost]
+        public async Task<IActionResult> Update(int cartItemId, int quantity)
         {
-            // check if product id is exist
-            ProductVM productDTO = new ProductVM();
-            Product existProduct = await _cartService.GetByIdAsync(product.ProductId);
-            if (existProduct == null)
-            {
-                ViewBag.Message = "Product not found!";
-                return productDTO;
-            }
-            if (existProduct.StockQuantity < qty)
-            {
-                ViewBag.Message = $"Not enough stock! Available: {existProduct.StockQuantity}";
-                return productDTO;
-            }
-            try
-            {
-                productDTO.product = existProduct;
-                productDTO.quantity = qty;
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+                return RedirectToAction("Login", "Account");
 
-                await _cartService.Update(existProduct);
-                ViewBag.Message = "Product updated successfully";
-                return (productDTO);
-            }
-            catch (Exception ex)
-            {
-                ViewBag.Message = "Failed to update product: " + ex.Message;
-                return productDTO;
-            }
+            var (item, msg) = await _cartService.UpdateQuantityAsync(userId, cartItemId, quantity);
+
+            if (item == null)
+                TempData["ErrorMessage"] = msg;
+            else
+                TempData["SuccessMessage"] = msg;
+
+            return RedirectToAction("Index", "Cart");
         }
 
         public async Task<Product> Remove(Product product)

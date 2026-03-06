@@ -1,16 +1,105 @@
 ﻿@model Project_E_commerse.Models.Category
 
-<h2>Edit Category</h2>
+@{
+    ViewData["Title"] = "Edit Category";
+}
 
-<form asp-action="Edit">
+<div class="page-wrap">
 
-    <input type="hidden" asp-for="CategoryId" />
-
-    <div class="form-group">
-        <label>Name</label>
-        <input asp-for="Name" class="form-control" />
+    <!-- Breadcrumb -->
+    <div class="breadcrumb-bar">
+        <a asp-controller="Home" asp-action="Index">Home</a>
+        <span>›</span>
+        <a asp-area="Admin" asp-controller="Products" asp-action="Index">Admin</a>
+        <span>›</span>
+        <a asp-controller="Category" asp-action="Index">Categories</a>
+        <span>›</span>
+        Edit: @Model.Name
     </div>
 
-    <button type="submit" class="btn btn-primary">Update</button>
+    <div style="max-width:600px; margin:0 auto;">
 
-</form>
+        <div style="background:#fff; border:1px solid #ddd; border-radius:8px; padding:32px;">
+
+            <!-- Header -->
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:24px; padding-bottom:16px; border-bottom:2px solid var(--amazon-yellow);">
+                <i class="bi bi-pencil-square" style="font-size:1.5rem; color:var(--amazon-yellow);"></i>
+                <div>
+                    <h2 style="font-size:1.3rem; font-weight:700; color:var(--text-primary); margin:0;">
+                        Edit Category
+                    </h2>
+                    <p style="font-size:.78rem; color:var(--text-secondary); margin:2px 0 0;">
+                        ID: #@Model.CategoryId
+                    </p>
+                </div>
+            </div>
+
+            <!-- Validation Summary -->
+            <div asp-validation-summary="ModelOnly"
+                 style="background:#fff0f0; border-left:4px solid #b12704; color:#b12704;
+                        padding:10px 14px; border-radius:4px; font-size:.85rem; margin-bottom:20px;">
+            </div>
+
+            <form asp-action="Edit" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="CategoryId" />
+
+                <!-- Name Field -->
+                <div style="margin-bottom:20px;">
+                    <label asp-for="Name"
+                           style="display:block; font-weight:700; font-size:.88rem; margin-bottom:6px; color:var(--text-primary);">
+                        Category Name <span style="color:#b12704;">*</span>
+                    </label>
+                    <input asp-for="Name"
+                           style="width:100%; padding:10px 12px; border:1px solid #ddd;
+                                  border-radius:4px; font-size:.9rem; font-family:'Cairo',sans-serif;
+                                  outline:none; transition:border-color .2s;"
+                           onfocus="this.style.borderColor='var(--amazon-yellow)'"
+                           onblur="this.style.borderColor='#ddd'" />
+                    <span asp-validation-for="Name"
+                          style="color:#b12704; font-size:.78rem; display:block; margin-top:4px;"></span>
+                </div>
+
+                <!-- Parent Category Field -->
+                <div style="margin-bottom:28px;">
+                    <label asp-for="ParentCategoryId"
+                           style="display:block; font-weight:700; font-size:.88rem; margin-bottom:6px; color:var(--text-primary);">
+                        Parent Category
+                        <span style="font-weight:400; color:var(--text-secondary); font-size:.78rem;">(optional)</span>
+                    </label>
+                    <input asp-for="ParentCategoryId"
+                           type="number"
+                           placeholder="Leave empty for top-level"
+                           style="width:100%; padding:10px 12px; border:1px solid #ddd;
+                                  border-radius:4px; font-size:.9rem; font-family:'Cairo',sans-serif;
+                                  outline:none; transition:border-color .2s;"
+                           onfocus="this.style.borderColor='var(--amazon-yellow)'"
+                           onblur="this.style.borderColor='#ddd'" />
+                    <span asp-validation-for="ParentCategoryId"
+                          style="color:#b12704; font-size:.78rem; display:block; margin-top:4px;"></span>
+                </div>
+
+                <!-- Actions -->
+                <div style="display:flex; gap:12px;">
+                    <button type="submit" class="btn-primary-shop"
+                            style="flex:1; text-align:center; border-radius:4px; padding:10px 0; font-size:.95rem;">
+                        <i class="bi bi-check-circle-fill me-1"></i> Save Changes
+                    </button>
+                    <a asp-controller="Category" asp-action="Index"
+                       class="btn-secondary-shop"
+                       style="flex:1; text-align:center; border-radius:4px; padding:10px 0; font-size:.95rem;">
+                        <i class="bi bi-x-circle me-1"></i> Cancel
+                    </a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -1,11 +1,13 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Project_E_commerse.Data;
+using Project_E_commerse.Mappings;
 using Project_E_commerse.Models;
 using Project_E_commerse.Services.Admin;
 using Project_E_commerse.Services.Cart;
 using Project_E_commerse.Services.Category;
 using Project_E_commerse.Services.Order;
+using Project_E_commerse.Services.Product;
 
 namespace Project_E_commerse
 {
@@ -36,6 +38,9 @@ namespace Project_E_commerse
             builder.Services.AddScoped<IOrderService, OrderService>();
             builder.Services.AddScoped<ICartService, CartService>();
             builder.Services.AddScoped<IAdminService, AdminService>();
+            builder.Services.AddScoped<IProductService, ProductService>();
+
+            builder.Services.AddAutoMapper(typeof(ProductProfile));
 
             var app = builder.Build();
 
