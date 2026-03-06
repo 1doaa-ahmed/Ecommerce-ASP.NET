@@ -1,0 +1,188 @@
+﻿@using Project_E_commerse.ViewModels.ProductDetailsViewModel
+@using Project_E_commerse.ViewModels.ProductListVM.ProductListVM
+@model ProductDetailsVM
+@{
+    ViewData["Title"] = Model.Name;
+}
+
+<div class="page-wrap">
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb-bar">
+        <a asp-controller="Home" asp-action="Index">Home</a> <span>›</span>
+        <a asp-controller="Category" asp-action="Index">All Products</a> <span>›</span>
+        @if (Model.CategoryVM != null)
+        {
+            <a asp-controller="Category" asp-action="Index" asp-route-categoryId="@Model.CategoryVM.CategoryId">@Model.CategoryVM.CategoryName</a>
+            <span>›</span>
+        }
+        <strong>@Model.Name</strong>
+    </div>
+
+    <!-- ═══ MAIN PRODUCT ════════════════════════════════════ -->
+    <div style="display:grid; grid-template-columns:1fr 1fr 280px; gap:20px; background:#fff; padding:20px; border-radius:6px; border:1px solid #e5e5e5; margin-bottom:20px;">
+
+        <!-- Image Column -->
+        <div style="display:flex; flex-direction:column; gap:8px;">
+            <div style="border:1px solid #e5e5e5; border-radius:6px; padding:20px; display:flex; align-items:center; justify-content:center; min-height:380px;">
+                <i class="bi bi-box-seam" style="font-size:8rem; color:#ccc;"></i>
+            </div>
+            <!-- Thumbnails -->
+            <div style="display:flex; gap:8px;">
+                @for (int i = 0; i < 4; i++)
+                {
+                    <div style="border:2px solid @(i == 0 ? "var(--amazon-orange)" : "#e5e5e5"); border-radius:4px; padding:6px; cursor:pointer; flex:1; display:flex; align-items:center; justify-content:center;">
+                        <i class="bi bi-box-seam" style="font-size:1.5rem; color:#ccc;"></i>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Details Column -->
+        <div>
+            <div style="font-size:.75rem; color:#007185; margin-bottom:4px;">
+                <a href="#" style="color:#007185; text-decoration:none;">Visit the @Model.CategoryVM?.CategoryName Store</a>
+            </div>
+
+            <h1 style="font-size:1.25rem; font-weight:600; line-height:1.4; margin-bottom:10px;">@Model.Name</h1>
+
+            <!-- Stars -->
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; padding-bottom:10px; border-bottom:1px solid #e5e5e5;">
+                <span style="color:var(--star); font-size:.9rem;">
+                    <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i>
+                </span>
+                <a href="#" style="color:#007185; font-size:.82rem; text-decoration:none;">4.5 out of 5</a>
+                <span style="color:#e5e5e5;">|</span>
+                <a href="#" style="color:#007185; font-size:.82rem; text-decoration:none;">1,284 ratings</a>
+            </div>
+
+            <!-- Price -->
+            <div style="padding:10px 0; border-bottom:1px solid #e5e5e5; margin-bottom:14px;">
+                <div style="font-size:.78rem; color:var(--red); font-weight:600; margin-bottom:2px;">-15%</div>
+                <div style="display:flex; align-items:baseline; gap:8px;">
+                    <span style="font-size:1.6rem; font-weight:700; color:var(--red);">
+                        EGP @Model.Price.ToString("N0")
+                    </span>
+                    <span style="font-size:.82rem; color:var(--text-secondary);">
+                        Was: <span style="text-decoration:line-through;">EGP @((Model.Price * 1.15m).ToString("N0"))</span>
+                    </span>
+                </div>
+                <div style="font-size:.78rem; color:var(--text-secondary); margin-top:2px;">
+                    Inclusive of VAT (14%)
+                </div>
+                <div style="color:var(--green); font-size:.82rem; font-weight:600; margin-top:4px;">
+                    <i class="bi bi-truck me-1"></i>FREE Delivery <strong>Tomorrow</strong>
+                </div>
+            </div>
+
+            <!-- Specs -->
+            <table style="width:100%; font-size:.82rem; border-collapse:collapse;">
+                <tr>
+                    <td style="color:var(--text-secondary); padding:4px 0; width:40%;">SKU</td>
+                    <td style="font-weight:600;">@Model.SKU</td>
+                </tr>
+                @if (Model.CategoryVM != null)
+                {
+                    <tr>
+                        <td style="color:var(--text-secondary); padding:4px 0;">Category</td>
+                        <td><a asp-controller="Category" asp-action="Index" asp-route-categoryId="@Model.CategoryVM.CategoryId" style="color:#007185; text-decoration:none;">@Model.CategoryVM.CategoryName</a></td>
+                    </tr>
+                    @if (!string.IsNullOrEmpty(Model.CategoryVM.ParentCategoryName))
+                    {
+                        <tr>
+                            <td style="color:var(--text-secondary); padding:4px 0;">Department</td>
+                            <td>@Model.CategoryVM.ParentCategoryName</td>
+                        </tr>
+                    }
+                }
+                <tr>
+                    <td style="color:var(--text-secondary); padding:4px 0;">Date Listed</td>
+                    <td>@Model.CreatedAt.ToString("MMM dd, yyyy")</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Buy Box -->
+        <div style="border:1px solid #e5e5e5; border-radius:6px; padding:16px;">
+            <div style="font-size:1.4rem; font-weight:700; color:var(--red); margin-bottom:10px;">
+                EGP @Model.Price.ToString("N0")
+            </div>
+
+            <div style="color:var(--green); font-size:.82rem; font-weight:600; margin-bottom:8px;">
+                <i class="bi bi-truck me-1"></i>FREE Delivery Tomorrow
+            </div>
+
+            @if (Model.StockQuantity > 0)
+            {
+                <div style="color:var(--green); font-weight:700; font-size:.9rem; margin-bottom:12px;">
+                    In Stock
+                </div>
+                @if (Model.StockQuantity < 6)
+                {
+                    <div style="color:var(--red); font-size:.8rem; margin-bottom:8px;">
+                        Only @Model.StockQuantity left in stock – order soon.
+                    </div>
+                }
+
+                <!-- Qty Selector -->
+                <form asp-controller="Cart" asp-action="Add" method="post">
+                    <input type="hidden" name="productId" value="@Model.ProductId" />
+                    <div style="margin-bottom:10px;">
+                        <label style="font-size:.78rem; color:var(--text-secondary); display:block; margin-bottom:4px;">Qty:</label>
+                        <select name="quantity" style="padding:6px 10px; border:1px solid #ccc; border-radius:4px; font-family:'Cairo',sans-serif; font-size:.88rem; background:#f7f7f7;">
+                            @for (int i = 1; i <= Math.Min(Model.StockQuantity, 10); i++)
+                            {
+                                <option value="@i">@i</option>
+                            }
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-add-cart" style="margin-bottom:8px;">Add to Cart</button>
+                </form>
+
+                <form asp-controller="Orders" asp-action="Checkout" method="get">
+                    <button type="submit" style="width:100%; background:#fa8900; border:1px solid #c45500; border-radius:20px; padding:8px; font-size:.88rem; font-weight:700; cursor:pointer; font-family:'Cairo',sans-serif; margin-bottom:12px;">
+                        Buy Now
+                    </button>
+                </form>
+            }
+            else
+            {
+                <div style="color:var(--red); font-weight:700; margin-bottom:12px;">Currently Unavailable</div>
+            }
+
+            <div style="font-size:.75rem; color:var(--text-secondary); line-height:1.6;">
+                <div><i class="bi bi-shield-check text-success me-1"></i>Secure transaction</div>
+                <div><i class="bi bi-arrow-return-left text-success me-1"></i>30-day return policy</div>
+                <div style="margin-top:8px;"><strong>Ships from:</strong> ShopZone</div>
+                <div><strong>Sold by:</strong> ShopZone Egypt</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ RELATED PRODUCTS ═════════════════════════════════ -->
+    @if (Model.RelatedProducts.Any())
+    {
+        <div style="background:#fff; padding:16px 20px; border-radius:6px; border:1px solid #e5e5e5;">
+            <h2 style="font-size:1.1rem; font-weight:700; margin-bottom:14px; padding-bottom:8px; border-bottom:2px solid var(--amazon-orange);">
+                Customers also viewed
+            </h2>
+            <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:12px;">
+                @foreach (var p in Model.RelatedProducts)
+                {
+                    <div class="product-card">
+                        <a asp-controller="Category" asp-action="Details" asp-route-id="@p.ProductId" style="text-decoration:none; color:inherit;">
+                            <div class="img-placeholder" style="min-height:140px;"><i class="bi bi-box-seam" style="font-size:3rem;"></i></div>
+                        </a>
+                        <div class="card-body">
+                            <div class="p-name" style="-webkit-line-clamp:2;">@p.Name</div>
+                            <div class="p-stars" style="font-size:.72rem;">
+                                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star"></i>
+                            </div>
+                            <div class="p-price" style="font-size:.95rem;">EGP @p.Price.ToString("N0")</div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>

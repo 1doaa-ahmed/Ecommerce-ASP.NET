@@ -1,0 +1,255 @@
+﻿@using Project_E_commerse.ViewModels.ProductListVM.ProductListVM
+@model ProductListVM
+@{
+    ViewData["Title"] = "Shop";
+}
+
+<div class="page-wrap">
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb-bar">
+        <a asp-controller="Home" asp-action="Index">Home</a>
+        <span>›</span>
+        @if (Model.CategoryId.HasValue)
+        {
+            <a asp-controller="Category" asp-action="Index">All Products</a>
+            <span>›</span>
+            <strong>@(Model.Categories.FirstOrDefault(c => c.CategoryId == Model.CategoryId)?.Name ?? "Category")</strong>
+        }
+        else
+        {
+            <strong>All Products</strong>
+        }
+    </div>
+
+    <div style="display:grid; grid-template-columns:220px 1fr; gap:20px; align-items:start;">
+
+        <!-- ═══ SIDEBAR ══════════════════════════════════════ -->
+        <aside class="filter-sidebar" style="background:#fff; padding:14px; border-radius:6px; border:1px solid #e5e5e5; position:sticky; top:70px;">
+            <h3><i class="bi bi-funnel-fill me-1"></i>Filters</h3>
+
+            <!-- Category Filter -->
+            <div class="filter-section">
+                <div class="filter-title">Department</div>
+                <label>
+                    <input type="radio" name="cat" onchange="applyFilter()" value="" @(Model.CategoryId == null ? "checked" : "") />
+                    All Categories
+                </label>
+                @foreach (var cat in Model.Categories)
+                {
+                    <label>
+                        <input type="radio" name="cat" onchange="applyFilter()" value="@cat.CategoryId"
+                               @(Model.CategoryId == cat.CategoryId ? "checked" : "") />
+                        @cat.Name
+                    </label>
+                }
+            </div>
+
+            <!-- Price Filter -->
+            <div class="filter-section">
+                <div class="filter-title">Price Range</div>
+                <div style="display:flex; gap:8px; margin-bottom:8px;">
+                    <input type="number" id="minPrice" placeholder="Min $" value="@Model.MinPrice"
+                           style="width:50%; padding:5px 8px; border:1px solid #ccc; border-radius:4px; font-size:.8rem;" />
+                    <input type="number" id="maxPrice" placeholder="Max $" value="@Model.MaxPrice"
+                           style="width:50%; padding:5px 8px; border:1px solid #ccc; border-radius:4px; font-size:.8rem;" />
+                </div>
+                <button onclick="applyFilter()" style="width:100%; padding:6px; background:var(--amazon-yellow); border:1px solid #c08800; border-radius:4px; cursor:pointer; font-family:'Cairo',sans-serif; font-weight:600; font-size:.8rem;">
+                    Go
+                </button>
+            </div>
+
+            <!-- Sort -->
+            <div class="filter-section">
+                <div class="filter-title">Sort By</div>
+                <select id="sortBy" onchange="applyFilter()"
+                        style="width:100%; padding:6px; border:1px solid #ccc;
+               border-radius:4px; font-size:.8rem; font-family:'Cairo',sans-serif;">
+                    @{
+                        var sorts = new Dictionary<string, string>
+                                        {
+                                        { "",            "Featured"          },
+                                        { "price_asc",  "Price: Low to High" },
+                                        { "price_desc", "Price: High to Low" },
+                                        { "newest",     "Newest Arrivals"    },
+                                        { "name_asc",   "Name: A–Z"          }
+                                        };
+                    }
+                    @foreach (var s in sorts)
+                    {
+                        if (s.Key == (Model.SortBy ?? ""))
+                        {
+                            <option value="@s.Key" selected>@s.Value</option>
+                        }
+                        else
+                        {
+                            <option value="@s.Key">@s.Value</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <!-- Availability -->
+            <div class="filter-section">
+                <div class="filter-title">Availability</div>
+                <label>
+                    <input type="checkbox" id="inStock" @(Model.IsActive == true ? "checked" : "") onchange="applyFilter()" />
+                    In Stock Only
+                </label>
+            </div>
+        </aside>
+
+        <!-- ═══ MAIN CONTENT ══════════════════════════════════ -->
+        <main>
+            <!-- Results Header -->
+            <div style="display:flex; align-items:center; justify-content:space-between; background:#fff; padding:10px 14px; border-radius:6px; border:1px solid #e5e5e5; margin-bottom:12px;">
+                <div style="font-size:.85rem; color:var(--text-secondary);">
+                    @if (!string.IsNullOrEmpty(Model.SearchTerm))
+                    {
+                        <span>Results for "<strong style="color:var(--text-primary);">@Model.SearchTerm</strong>"</span>
+                        <span style="margin-left:8px;">(@Model.TotalItems results)</span>
+                    }
+                    else
+                    {
+                        <span><strong>@Model.TotalItems</strong> results</span>
+                    }
+                </div>
+                <div style="font-size:.8rem; color:var(--text-secondary);">
+                    Page @Model.CurrentPage of @Model.TotalPages
+                </div>
+            </div>
+
+            @if (!Model.Products.Any())
+            {
+                <div style="background:#fff; text-align:center; padding:60px 20px; border-radius:6px; border:1px solid #e5e5e5;">
+                    <i class="bi bi-search" style="font-size:3rem; color:#ccc;"></i>
+                    <h3 style="margin-top:16px; color:var(--text-secondary); font-weight:600;">No results for "@Model.SearchTerm"</h3>
+                    <p style="color:var(--text-secondary); margin-top:8px; font-size:.9rem;">Try checking your spelling or using more general terms</p>
+                    <a href="@Url.Action("Index", "Category")" class="btn-primary-shop" style="margin-top:16px;">Clear Filters</a>
+                </div>
+            }
+            else
+            {
+                <!-- Product Grid -->
+                <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:12px;">
+                    @foreach (var product in Model.Products)
+                    {
+                        <div class="product-card">
+                            @if (product.StockQuantity == 0)
+                            {
+                                <div style="position:relative;">
+                                    <div class="img-placeholder"><i class="bi bi-image"></i></div>
+                                    <div style="position:absolute;top:8px;left:8px;"><span class="badge-out">Out of Stock</span></div>
+                                </div>
+                            }
+                            else
+                            {
+                                <a asp-controller="Category" asp-action="Details" asp-route-id="@product.ProductId" style="display:block; text-decoration:none;">
+                                    <div class="img-placeholder"><i class="bi bi-box-seam" style="font-size:4rem;"></i></div>
+                                </a>
+                            }
+
+                            <div class="card-body">
+                                <a asp-controller="Category" asp-action="Details" asp-route-id="@product.ProductId" style="text-decoration:none; color:inherit;">
+                                    <div class="p-name">@product.Name</div>
+                                </a>
+
+                                <div style="margin-top:4px; font-size:.73rem; color:var(--text-secondary);">@product.CategoryName</div>
+
+                                <div class="p-stars">
+                                    <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i>
+                                    <span style="color:var(--text-secondary); margin-left:2px; font-size:.72rem;">(128)</span>
+                                </div>
+
+                                <div class="p-price">EGP @product.Price.ToString("N0")</div>
+                                <div class="p-free"><i class="bi bi-truck me-1"></i>FREE Delivery</div>
+
+                                @if (product.StockQuantity > 0 && product.StockQuantity < 6)
+                                {
+                                    <div class="p-stock-low">Only @product.StockQuantity left!</div>
+                                }
+
+                                @if (product.StockQuantity > 0)
+                                {
+                                    <form asp-controller="Cart" asp-action="Add" method="post">
+                                        <input type="hidden" name="productId" value="@product.ProductId" />
+                                        <input type="hidden" name="quantity" value="1" />
+                                        <button type="submit" class="btn-add-cart">Add to Cart</button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <button class="btn-add-cart" disabled style="background:#e5e5e5; color:#999; cursor:not-allowed;">Unavailable</button>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Pagination -->
+                @if (Model.TotalPages > 1)
+                {
+                    <div style="display:flex; justify-content:center; align-items:center; gap:6px; margin-top:24px; flex-wrap:wrap;">
+                        @if (Model.HasPreviousPage)
+                        {
+                            <a class="btn-secondary-shop" asp-action="Index"
+                               asp-route-page="@(Model.CurrentPage - 1)"
+                               asp-route-q="@Model.SearchTerm"
+                               asp-route-categoryId="@Model.CategoryId"
+                               asp-route-sortBy="@Model.SortBy">← Previous</a>
+                        }
+
+                        @for (int i = Math.Max(1, Model.CurrentPage - 2); i <= Math.Min(Model.TotalPages, Model.CurrentPage + 2); i++)
+                        {
+                            if (i == Model.CurrentPage)
+                            {
+                                <span style="background:var(--amazon-yellow); border:1px solid #c08800; border-radius:4px; padding:7px 14px; font-weight:700; font-size:.88rem;">@i</span>
+                            }
+                            else
+                            {
+                                <a class="btn-secondary-shop" asp-action="Index"
+                                   asp-route-page="@i"
+                                   asp-route-q="@Model.SearchTerm"
+                                   asp-route-categoryId="@Model.CategoryId"
+                                   asp-route-sortBy="@Model.SortBy">@i</a>
+                            }
+                        }
+
+                        @if (Model.HasNextPage)
+                        {
+                            <a class="btn-primary-shop" asp-action="Index"
+                               asp-route-page="@(Model.CurrentPage + 1)"
+                               asp-route-q="@Model.SearchTerm"
+                               asp-route-categoryId="@Model.CategoryId"
+                               asp-route-sortBy="@Model.SortBy">Next →</a>
+                        }
+                    </div>
+                }
+            }
+        </main>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function applyFilter() {
+    const params = new URLSearchParams();
+    const cat      = document.querySelector('input[name="cat"]:checked')?.value;
+    const sort     = document.getElementById('sortBy')?.value;
+    const minPrice = document.getElementById('minPrice')?.value;
+    const maxPrice = document.getElementById('maxPrice')?.value;
+    const inStock  = document.getElementById('inStock')?.checked;
+    const q        = new URLSearchParams(location.search).get('q');
+
+    if (cat)      params.set('categoryId', cat);
+    if (sort)     params.set('sortBy', sort);
+    if (minPrice) params.set('minPrice', minPrice);
+    if (maxPrice) params.set('maxPrice', maxPrice);
+    if (inStock)  params.set('isActive', 'true');
+    if (q)        params.set('q', q);
+    params.set('page', '1');
+
+                    window.location.href = '/Category?' + params.toString();
+}
+</script>
+}

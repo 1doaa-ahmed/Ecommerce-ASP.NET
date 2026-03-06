@@ -1,0 +1,272 @@
+﻿@using Project_E_commerse.ViewModels.CheckoutViewModel
+@model CheckoutVM
+@{
+    ViewData["Title"] = "Checkout";
+}
+
+<style>
+    .checkout-step {
+        background: #fff;
+        border: 1px solid #e5e5e5;
+        border-radius: 6px;
+        margin-bottom: 12px;
+        overflow: hidden;
+    }
+
+    .step-header {
+        padding: 14px 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-bottom: 1px solid #e5e5e5;
+    }
+
+    .step-num {
+        width: 28px;
+        height: 28px;
+        background: var(--amazon-dark);
+        color: #fff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: .85rem;
+        flex-shrink: 0;
+    }
+
+    .step-title {
+        font-size: 1rem;
+        font-weight: 700;
+    }
+
+    .step-body {
+        padding: 20px;
+    }
+
+    .address-card {
+        border: 2px solid #e5e5e5;
+        border-radius: 6px;
+        padding: 14px;
+        cursor: pointer;
+        transition: border-color .2s, background .2s;
+        margin-bottom: 10px;
+    }
+
+        .address-card:hover {
+            border-color: var(--amazon-orange);
+            background: #fffbf5;
+        }
+
+        .address-card.selected {
+            border-color: var(--amazon-orange);
+            background: #fffbf5;
+        }
+
+        .address-card input[type=radio] {
+            accent-color: var(--amazon-orange);
+        }
+
+    .place-order-btn {
+        width: 100%;
+        background: var(--amazon-yellow);
+        border: 1px solid #c08800;
+        border-radius: 20px;
+        padding: 11px;
+        font-size: .95rem;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: 'Cairo',sans-serif;
+        transition: background .2s;
+    }
+
+        .place-order-btn:hover {
+            background: #e8a000;
+        }
+</style>
+
+<div class="page-wrap">
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb-bar" style="margin-bottom:12px;">
+        <a asp-controller="Cart" asp-action="Index">Cart</a>
+        <span>›</span>
+        <strong>Checkout (@Model.Cart.TotalItems item@(Model.Cart.TotalItems != 1 ? "s" : ""))</strong>
+    </div>
+
+    <form asp-controller="Orders" asp-action="Checkout" method="post">
+        @Html.AntiForgeryToken()
+        <div style="display:grid; grid-template-columns:1fr 320px; gap:16px; align-items:start;">
+
+            <!-- ═══ LEFT COLUMN ════════════════════════════════ -->
+            <div>
+
+                <!-- STEP 1: Shipping Address -->
+                <div class="checkout-step">
+                    <div class="step-header">
+                        <div class="step-num">1</div>
+                        <div class="step-title">Choose a shipping address</div>
+                    </div>
+                    <div class="step-body">
+                        @if (!Model.Addresses.Any())
+                        {
+                            <div style="color:var(--text-secondary); font-size:.88rem; margin-bottom:14px; padding:12px; background:#fff8e1; border-radius:4px; border-left:4px solid var(--amazon-yellow);">
+                                <i class="bi bi-info-circle me-1"></i>
+                                You have no saved addresses. Please add one below.
+                            </div>
+                        }
+                        else
+                        {
+                            @foreach (var addr in Model.Addresses)
+                            {
+                                <label class="address-card @(addr.AddressId == Model.SelectedAddressId ? "selected" : "")" for="addr_@addr.AddressId">
+                                    <div style="display:flex; align-items:start; gap:10px;">
+                                        <input type="radio" id="addr_@addr.AddressId" name="SelectedAddressId"
+                                               value="@addr.AddressId"
+                                               checked="@(addr.AddressId == Model.SelectedAddressId)"
+                                               onchange="document.querySelectorAll('.address-card').forEach(c=>c.classList.remove('selected')); this.closest('.address-card').classList.add('selected')" />
+                                        <div>
+                                            @if (addr.IsDefault)
+                                            {
+                                                <span style="font-size:.7rem; background:var(--amazon-orange); color:var(--amazon-dark); padding:1px 7px; border-radius:10px; font-weight:700; margin-bottom:4px; display:inline-block;">Default</span>
+                                            }
+                                            <div style="font-weight:600; font-size:.88rem;">@addr.Street</div>
+                                            <div style="font-size:.82rem; color:var(--text-secondary);">@addr.City, @addr.Country @addr.Zip</div>
+                                        </div>
+                                    </div>
+                                </label>
+                            }
+                        }
+
+                        <!-- Add New Address -->
+                        <div style="margin-top:12px;">
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:.85rem; font-weight:600; color:#007185;"
+                                   onclick="document.getElementById('newAddrForm').style.display = document.getElementById('newAddrForm').style.display === 'none' ? 'block' : 'none'">
+                                <i class="bi bi-plus-circle"></i> Add a new address
+                            </label>
+
+                            <div id="newAddrForm" style="display:none; margin-top:12px; padding:14px; background:#f7f7f7; border-radius:6px; border:1px solid #e5e5e5;">
+                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                                    <div>
+                                        <label style="font-size:.78rem; font-weight:600; margin-bottom:3px; display:block;">Street Address</label>
+                                        <input type="text" name="NewStreet" placeholder="123 Main St"
+                                               style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; font-size:.85rem; font-family:'Cairo',sans-serif;" />
+                                    </div>
+                                    <div>
+                                        <label style="font-size:.78rem; font-weight:600; margin-bottom:3px; display:block;">City</label>
+                                        <input type="text" name="NewCity" placeholder="Cairo"
+                                               style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; font-size:.85rem; font-family:'Cairo',sans-serif;" />
+                                    </div>
+                                    <div>
+                                        <label style="font-size:.78rem; font-weight:600; margin-bottom:3px; display:block;">Country</label>
+                                        <input type="text" name="NewCountry" placeholder="Egypt"
+                                               style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; font-size:.85rem; font-family:'Cairo',sans-serif;" />
+                                    </div>
+                                    <div>
+                                        <label style="font-size:.78rem; font-weight:600; margin-bottom:3px; display:block;">ZIP Code</label>
+                                        <input type="text" name="NewZip" placeholder="11511"
+                                               style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; font-size:.85rem; font-family:'Cairo',sans-serif;" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 2: Payment -->
+                <div class="checkout-step">
+                    <div class="step-header">
+                        <div class="step-num">2</div>
+                        <div class="step-title">Payment method</div>
+                    </div>
+                    <div class="step-body">
+                        <label class="address-card selected" style="margin-bottom:0;">
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <input type="radio" name="paymentMethod" value="cod" checked />
+                                <div>
+                                    <div style="font-weight:600; font-size:.88rem;">Cash on Delivery (COD)</div>
+                                    <div style="font-size:.78rem; color:var(--text-secondary);">Pay when you receive your order</div>
+                                </div>
+                                <i class="bi bi-cash-stack ms-auto" style="font-size:1.3rem; color:var(--green);"></i>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- STEP 3: Review Items -->
+                <div class="checkout-step">
+                    <div class="step-header">
+                        <div class="step-num">3</div>
+                        <div class="step-title">Review items and delivery</div>
+                    </div>
+                    <div class="step-body">
+                        <div style="color:var(--green); font-size:.82rem; font-weight:600; margin-bottom:12px;">
+                            <i class="bi bi-truck me-1"></i>
+                            Estimated delivery: <strong>Tomorrow</strong>
+                        </div>
+
+                        @foreach (var item in Model.Cart.CartItems)
+                        {
+                            <div style="display:flex; gap:12px; padding:10px 0; border-bottom:1px solid #f0f0f0; align-items:center;">
+                                <div style="width:60px; height:60px; border:1px solid #e5e5e5; border-radius:4px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                    <i class="bi bi-box-seam" style="color:#ccc; font-size:1.4rem;"></i>
+                                </div>
+                                <div style="flex:1;">
+                                    <div style="font-size:.85rem; font-weight:600;">@item.ProductName</div>
+                                    <div style="font-size:.75rem; color:var(--text-secondary);">Qty: @item.Quantity</div>
+                                </div>
+                                <div style="font-weight:700; font-size:.9rem;">EGP @item.LineTotal.ToString("N0")</div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ═══ RIGHT COLUMN – Order Summary ═══════════════ -->
+            <div style="position:sticky; top:70px;">
+                <div style="background:#fff; border:1px solid #e5e5e5; border-radius:6px; overflow:hidden;">
+                    <div style="background:var(--amazon-yellow); padding:14px 16px;">
+                        <button type="submit" class="place-order-btn">Place your order</button>
+                        <div style="font-size:.7rem; color:var(--text-secondary); text-align:center; margin-top:8px;">
+                            By placing your order, you agree to ShopZone's <a href="#" style="color:#007185;">privacy policy</a> and <a href="#" style="color:#007185;">terms</a>.
+                        </div>
+                    </div>
+
+                    <div style="padding:14px 16px;">
+                        <h3 style="font-size:.95rem; font-weight:700; margin-bottom:12px;">Order Summary</h3>
+
+                        <div style="font-size:.82rem; display:flex; flex-direction:column; gap:6px; color:var(--text-secondary);">
+                            <div style="display:flex; justify-content:space-between;">
+                                <span>Items (@Model.Cart.TotalItems):</span>
+                                <span style="color:var(--text-primary);">EGP @Model.Cart.SubTotal.ToString("N0")</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between;">
+                                <span>Shipping &amp; handling:</span>
+                                <span style="color:var(--green);">FREE</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between;">
+                                <span>Before VAT:</span>
+                                <span style="color:var(--text-primary);">EGP @Model.Cart.SubTotal.ToString("N0")</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between;">
+                                <span>VAT (14%):</span>
+                                <span style="color:var(--text-primary);">EGP @Model.Cart.Tax.ToString("N0")</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-weight:700; font-size:.95rem; color:var(--red); border-top:1px solid #e5e5e5; padding-top:8px; margin-top:4px;">
+                                <span>Order total:</span>
+                                <span>EGP @Model.Cart.Total.ToString("N0")</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security badges -->
+                    <div style="padding:10px 16px; border-top:1px solid #e5e5e5; font-size:.72rem; color:var(--text-secondary); display:flex; gap:12px; align-items:center;">
+                        <i class="bi bi-lock-fill text-success" style="font-size:1rem;"></i>
+                        <span>Secure checkout guaranteed</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>

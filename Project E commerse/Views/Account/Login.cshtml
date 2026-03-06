@@ -1,0 +1,143 @@
+﻿@{
+    ViewData["Title"] = "Sign In";
+}
+@model Project_E_commerse.ViewModels.AccountViewModel.LoginVM
+
+<style>
+    .auth-wrap {
+        min-height: 70vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .auth-box {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 28px 32px;
+        width: 100%;
+        max-width: 350px;
+    }
+
+        .auth-box h1 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 18px;
+        }
+
+    .form-group {
+        margin-bottom: 12px;
+    }
+
+        .form-group label {
+            display: block;
+            font-size: .82rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #a6a6a6;
+            border-radius: 4px;
+            font-size: .88rem;
+            font-family: 'Cairo', sans-serif;
+            outline: none;
+            transition: border-color .15s, box-shadow .15s;
+        }
+
+            .form-group input:focus {
+                border-color: #e77600;
+                box-shadow: 0 0 0 3px rgba(228,121,17,.25);
+            }
+
+        .form-group .error {
+            font-size: .73rem;
+            color: var(--red);
+            margin-top: 3px;
+        }
+
+    .auth-btn {
+        width: 100%;
+        background: var(--amazon-yellow);
+        border: 1px solid #c08800;
+        border-radius: 4px;
+        padding: 9px;
+        font-size: .88rem;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: 'Cairo', sans-serif;
+        margin-top: 4px;
+        transition: background .2s;
+    }
+
+        .auth-btn:hover {
+            background: #e8a000;
+        }
+
+    .auth-divider {
+        border: none;
+        border-top: 1px solid #e5e5e5;
+        margin: 16px 0;
+    }
+
+    .auth-small {
+        font-size: .73rem;
+        color: var(--text-secondary);
+        margin-top: 10px;
+        text-align: center;
+    }
+
+        .auth-small a {
+            color: #007185;
+        }
+</style>
+
+<div class="auth-wrap">
+    <div style="width:100%; max-width:350px;">
+        <!-- Logo -->
+        <div style="text-align:center; margin-bottom:16px;">
+            <a asp-controller="Home" asp-action="Index" style="font-size:1.8rem; font-weight:900; color:var(--amazon-dark); text-decoration:none;">
+                Shop<span style="color:var(--amazon-orange);">Zone</span>
+            </a>
+        </div>
+
+        <div class="auth-box">
+            <h1>Sign in</h1>
+
+            <form asp-controller="Account" asp-action="Login" method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" style="background:#fff3e0; border:1px solid #f90; border-radius:4px; padding:8px 12px; font-size:.8rem; color:#7b5200; margin-bottom:12px; display:none;"></div>
+
+                <div class="form-group">
+                    <label asp-for="Email">Email or phone number</label>
+                    <input asp-for="Email" type="email" />
+                    <span asp-validation-for="Email" class="error"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Password">Password</label>
+                    <input asp-for="Password" type="password" />
+                    <span asp-validation-for="Password" class="error"></span>
+                </div>
+
+                <button type="submit" class="auth-btn">Continue</button>
+
+                <div class="auth-small">
+                    By continuing, you agree to ShopZone's <a href="#">Conditions of Use</a> and <a href="#">Privacy Notice</a>.
+                </div>
+            </form>
+
+            <hr class="auth-divider" />
+
+            <div style="font-size:.82rem; font-weight:700; color:var(--text-secondary); margin-bottom:10px;">New to ShopZone?</div>
+            <a asp-controller="Account" asp-action="Register"
+               style="display:block; text-align:center; background:#f0f2f2; border:1px solid #d5d9d9; border-radius:4px; padding:8px; font-size:.85rem; text-decoration:none; color:var(--text-primary); font-weight:600; transition:background .2s;">
+                Create your ShopZone account
+            </a>
+        </div>
+    </div>
+</div>

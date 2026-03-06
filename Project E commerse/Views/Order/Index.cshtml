@@ -1,0 +1,126 @@
+﻿@using Project_E_commerse.Models
+@{
+    ViewData["Title"] = "Your Orders";
+    var orders = ViewBag.Orders as IEnumerable<Order> ?? new List<Order>();
+}
+
+<div class="page-wrap">
+    <div style="display:grid; grid-template-columns:220px 1fr; gap:20px;">
+
+        <!-- Sidebar -->
+        <div style="background:#fff; border:1px solid #e5e5e5; border-radius:6px; padding:16px; height:fit-content;">
+            <h3 style="font-size:.88rem; font-weight:700; padding-bottom:8px; border-bottom:1px solid #e5e5e5; margin-bottom:10px;">
+                Your Account
+            </h3>
+            <nav style="display:flex; flex-direction:column; gap:4px;">
+                <a asp-controller="Orders" asp-action="Index"
+                   style="padding:6px 8px; border-radius:4px; font-size:.82rem; text-decoration:none; background:var(--amazon-yellow); color:var(--text-primary); font-weight:600;">
+                    <i class="bi bi-bag me-2"></i>Your Orders
+                </a>
+                <a href="#" style="padding:6px 8px; border-radius:4px; font-size:.82rem; text-decoration:none; color:#007185;">
+                    <i class="bi bi-geo-alt me-2"></i>Your Addresses
+                </a>
+                <a href="#" style="padding:6px 8px; border-radius:4px; font-size:.82rem; text-decoration:none; color:#007185;">
+                    <i class="bi bi-person me-2"></i>Login &amp; Security
+                </a>
+            </nav>
+        </div>
+
+        <!-- Main -->
+        <div>
+            <div style="background:#fff; border:1px solid #e5e5e5; border-radius:6px; overflow:hidden;">
+
+                <!-- Header -->
+                <div style="padding:14px 20px; border-bottom:1px solid #e5e5e5; display:flex; align-items:center; justify-content:space-between;">
+                    <h2 style="font-size:1.1rem; font-weight:700; margin:0;">Your Orders</h2>
+                    <div style="font-size:.8rem; color:var(--text-secondary);">
+                        @(orders.Count()) orders placed
+                    </div>
+                </div>
+
+                @if (!orders.Any())
+                {
+                    <div style="padding:50px; text-align:center;">
+                        <i class="bi bi-bag-x" style="font-size:3.5rem; color:#ccc;"></i>
+                        <h3 style="margin-top:14px; color:var(--text-secondary); font-size:1rem;">You have no orders yet</h3>
+                        <a asp-controller="Category" asp-action="Index" class="btn-primary-shop" style="margin-top:14px; display:inline-block;">
+                            Continue Shopping
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var order in orders)
+                    {
+                        <div style="border-bottom:1px solid #e5e5e5;">
+                            <!-- Order Header -->
+                            <div style="background:#f7f7f7; padding:10px 20px; display:grid; grid-template-columns:repeat(4,auto) 1fr; gap:24px; align-items:center; font-size:.75rem;">
+                                <div>
+                                    <div style="color:var(--text-secondary); text-transform:uppercase; font-weight:600; margin-bottom:2px;">Order Placed</div>
+                                    <div>@order.OrderDate.ToString("MMMM d, yyyy")</div>
+                                </div>
+                                <div>
+                                    <div style="color:var(--text-secondary); text-transform:uppercase; font-weight:600; margin-bottom:2px;">Total</div>
+                                    <div style="font-weight:700;">EGP @order.TotalAmount.ToString("N0")</div>
+                                </div>
+                                <div>
+                                    <div style="color:var(--text-secondary); text-transform:uppercase; font-weight:600; margin-bottom:2px;">Status</div>
+                                    @{
+                                        var sc = order.Status switch
+                                        {
+                                            OrderStatus.Pending => "status-pending",
+                                            OrderStatus.Processing => "status-processing",
+                                            OrderStatus.Shipped => "status-shipped",
+                                            OrderStatus.Delivered => "status-delivered",
+                                            OrderStatus.Cancelled => "status-cancelled",
+                                            _ => "status-pending"
+                                        };
+                                    }
+                                    <span class="status-badge @sc">@order.Status</span>
+                                </div>
+                                <div>
+                                    <div style="color:var(--text-secondary); text-transform:uppercase; font-weight:600; margin-bottom:2px;">Order #</div>
+                                    <div>@order.OrderNumber</div>
+                                </div>
+                                <div style="text-align:right;">
+                                    <a asp-controller="Orders" asp-action="Details" asp-route-id="@order.OrderId"
+                                       style="color:#007185; font-size:.78rem; text-decoration:none;">
+                                        View order details ›
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Order Items Preview -->
+                            <div style="padding:14px 20px; display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+                                @foreach (var item in order.OrderItems.Take(4))
+                                {
+                                    <div style="display:flex; align-items:center; gap:8px;">
+                                        <div style="width:55px; height:55px; border:1px solid #e5e5e5; border-radius:4px; display:flex; align-items:center; justify-content:center;">
+                                            <i class="bi bi-box-seam" style="color:#ccc;"></i>
+                                        </div>
+                                    </div>
+                                }
+                                @if (order.OrderItems.Count > 4)
+                                {
+                                    <span style="font-size:.75rem; color:var(--text-secondary);">+@(order.OrderItems.Count - 4) more</span>
+                                }
+                                <div style="margin-left:auto; display:flex; gap:8px;">
+                                    <a asp-controller="Orders" asp-action="Details" asp-route-id="@order.OrderId"
+                                       class="btn-secondary-shop" style="font-size:.78rem; padding:6px 14px;">
+                                        View Order
+                                    </a>
+                                    @if (order.Status == OrderStatus.Delivered)
+                                    {
+                                        <button class="btn-secondary-shop" style="font-size:.78rem; padding:6px 14px; border:none; cursor:pointer;">
+                                            Write a review
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>

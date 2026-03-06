@@ -1,0 +1,168 @@
+﻿@using Project_E_commerse.ViewModels.CartViewModel
+@model CartVM
+@{
+    ViewData["Title"] = "Shopping Cart";
+}
+
+<div class="page-wrap">
+    <h1 style="font-size:1.5rem; font-weight:700; margin-bottom:16px;">Shopping Cart</h1>
+
+    @if (!Model.CartItems.Any())
+    {
+        <div style="display:grid; grid-template-columns:1fr 280px; gap:16px; align-items:start;">
+            <div style="background:#fff; border:1px solid #e5e5e5; border-radius:6px; padding:40px; text-align:center;">
+                <i class="bi bi-cart-x" style="font-size:4rem; color:#ccc;"></i>
+                <h3 style="margin-top:16px; color:var(--text-secondary);">Your ShopZone Cart is empty</h3>
+                <p style="color:var(--text-secondary); font-size:.88rem; margin-top:8px;">
+                    Your shopping cart lives here. Add some products!
+                </p>
+                <a asp-controller="Category" asp-action="Index" class="btn-primary-shop" style="margin-top:16px; display:inline-block;">
+                    Continue Shopping
+                </a>
+            </div>
+            <!-- Empty state subtotal -->
+            <div style="background:#fff; border:1px solid #e5e5e5; border-radius:6px; padding:16px;">
+                <div style="font-size:.88rem;">Subtotal (0 items): <strong>EGP 0</strong></div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div style="display:grid; grid-template-columns:1fr 280px; gap:16px; align-items:start;">
+
+            <!-- ═══ CART ITEMS ════════════════════════════════ -->
+            <div style="background:#fff; border:1px solid #e5e5e5; border-radius:6px; overflow:hidden;">
+
+                <!-- Header -->
+                <div style="padding:12px 20px; border-bottom:1px solid #e5e5e5; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:.8rem; color:var(--text-secondary);">Price</span>
+                </div>
+
+                @foreach (var item in Model.CartItems)
+                {
+                    <div style="padding:16px 20px; border-bottom:1px solid #f0f0f0; display:grid; grid-template-columns:100px 1fr auto; gap:16px; align-items:start;">
+
+                        <!-- Image -->
+                        <div style="border:1px solid #e5e5e5; border-radius:4px; padding:8px; display:flex; align-items:center; justify-content:center; height:100px;">
+                            <i class="bi bi-box-seam" style="font-size:2.5rem; color:#ccc;"></i>
+                        </div>
+
+                        <!-- Info -->
+                        <div>
+                            <a asp-controller="Category" asp-action="Details" asp-route-id="@item.ProductId"
+                               style="font-size:.95rem; font-weight:600; color:#007185; text-decoration:none; line-height:1.4; display:block; margin-bottom:4px;">
+                                @item.ProductName
+                            </a>
+                            <div style="font-size:.75rem; color:var(--text-secondary); margin-bottom:4px;">SKU: @item.SKU</div>
+
+                            @if (item.IsAvailable)
+                            {
+                                <div style="color:var(--green); font-size:.78rem; font-weight:600; margin-bottom:8px;">In Stock</div>
+                            }
+                            else
+                            {
+                                <div style="color:var(--red); font-size:.78rem; font-weight:600; margin-bottom:8px;">Out of Stock</div>
+                            }
+
+                            <div style="font-size:.75rem; color:var(--green); margin-bottom:10px;">
+                                <i class="bi bi-truck me-1"></i>FREE Delivery
+                            </div>
+
+                            <!-- Actions -->
+                            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                                <!-- Qty Update -->
+                                <form asp-controller="Cart" asp-action="Update" method="post" style="display:flex; align-items:center; gap:4px;">
+                                    <input type="hidden" name="productId" value="@item.ProductId" />
+                                    <label style="font-size:.75rem; color:var(--text-secondary);">Qty:</label>
+                                    <select name="quantity" onchange="this.form.submit()"
+                                            style="padding:4px 6px; border:1px solid #ccc; border-radius:4px; font-family:'Cairo',sans-serif; font-size:.82rem; background:#f7f7f7;">
+                                        @for (int i = 1; i <= Math.Min(item.StockQuantity > 0 ? item.StockQuantity : 10, 10); i++)
+                                        {
+                                            <option value="@i" selected="@(i == item.Quantity)">@i</option>
+                                        }
+                                    </select>
+                                </form>
+
+                                <span style="color:#ccc;">|</span>
+
+                                <!-- Remove -->
+                                <form asp-controller="Cart" asp-action="Remove" method="post" style="display:inline;">
+                                    <input type="hidden" name="productId" value="@item.ProductId" />
+                                    <button type="submit" style="background:none; border:none; color:#007185; font-size:.78rem; cursor:pointer; font-family:'Cairo',sans-serif; text-decoration:underline; padding:0;">
+                                        Delete
+                                    </button>
+                                </form>
+
+                                <span style="color:#ccc;">|</span>
+                                <button style="background:none; border:none; color:#007185; font-size:.78rem; cursor:pointer; font-family:'Cairo',sans-serif; text-decoration:underline; padding:0;">
+                                    Save for later
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Price -->
+                        <div style="text-align:right; min-width:100px;">
+                            <div style="font-weight:700; font-size:1rem;">EGP @item.LineTotal.ToString("N0")</div>
+                            @if (item.Quantity > 1)
+                            {
+                                <div style="font-size:.72rem; color:var(--text-secondary);">EGP @item.UnitPrice.ToString("N0") each</div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <!-- Cart Footer -->
+                <div style="padding:14px 20px; text-align:right; font-size:.9rem;">
+                    Subtotal (<strong>@Model.TotalItems item@(Model.TotalItems != 1 ? "s" : "")</strong>):
+                    <strong style="font-size:1.1rem; margin-left:6px;">EGP @Model.SubTotal.ToString("N0")</strong>
+                </div>
+            </div>
+
+            <!-- ═══ ORDER SUMMARY ═════════════════════════════ -->
+            <div>
+                <div style="background:#fff; border:1px solid #e5e5e5; border-radius:6px; padding:16px; margin-bottom:12px;">
+                    <div style="font-size:.82rem; color:var(--green); margin-bottom:10px;">
+                        <i class="bi bi-check-circle-fill me-1"></i>
+                        Your order qualifies for FREE Delivery.
+                    </div>
+
+                    <div style="font-size:.95rem; margin-bottom:14px;">
+                        Subtotal (<strong>@Model.TotalItems items</strong>):
+                        <strong style="font-size:1.1rem; display:block; margin-top:2px;">EGP @Model.SubTotal.ToString("N0")</strong>
+                    </div>
+
+                    <!-- Breakdown -->
+                    <div style="font-size:.8rem; color:var(--text-secondary); margin-bottom:14px; padding:10px; background:#f7f7f7; border-radius:4px;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                            <span>Subtotal</span><span>EGP @Model.SubTotal.ToString("N0")</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                            <span>VAT (14%)</span><span>EGP @Model.Tax.ToString("N0")</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                            <span>Shipping</span><span style="color:var(--green);">FREE</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-weight:700; color:var(--text-primary); border-top:1px solid #ddd; padding-top:6px; margin-top:6px;">
+                            <span>Order Total</span><span>EGP @Model.Total.ToString("N0")</span>
+                        </div>
+                    </div>
+
+                    <a asp-controller="Orders" asp-action="Checkout"
+                       style="display:block; text-align:center; background:var(--amazon-yellow); border:1px solid #c08800; border-radius:20px; padding:9px; font-weight:700; font-size:.9rem; text-decoration:none; color:var(--text-primary); margin-bottom:8px;">
+                        Proceed to Checkout
+                    </a>
+
+                    <div style="font-size:.72rem; color:var(--text-secondary); text-align:center;">
+                        <i class="bi bi-shield-check text-success me-1"></i>Secure transaction
+                    </div>
+                </div>
+
+                <!-- Continue Shopping -->
+                <a asp-controller="Category" asp-action="Index"
+                   style="display:block; text-align:center; color:#007185; font-size:.82rem; text-decoration:none;">
+                    ← Continue Shopping
+                </a>
+            </div>
+        </div>
+    }
+</div>

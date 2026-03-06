@@ -1,0 +1,173 @@
+﻿@using Project_E_commerse.ViewModels.OrderDetailsViewModel
+@using Project_E_commerse.Models
+@model OrderDetailsVM
+@{
+    ViewData["Title"] = "Order " + Model.OrderNumber;
+    var statusClass = Model.Status switch
+    {
+        OrderStatus.Pending => "status-pending",
+        OrderStatus.Processing => "status-processing",
+        OrderStatus.Shipped => "status-shipped",
+        OrderStatus.Delivered => "status-delivered",
+        OrderStatus.Cancelled => "status-cancelled",
+        _ => "status-pending"
+    };
+    var statusIcon = Model.Status switch
+    {
+        OrderStatus.Pending => "bi-clock",
+        OrderStatus.Processing => "bi-gear",
+        OrderStatus.Shipped => "bi-truck",
+        OrderStatus.Delivered => "bi-check-circle-fill",
+        OrderStatus.Cancelled => "bi-x-circle",
+        _ => "bi-clock"
+    };
+}
+
+<div class="page-wrap">
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb-bar" style="margin-bottom:12px;">
+        <a asp-controller="Orders" asp-action="Index">Your Orders</a>
+        <span>›</span>
+        <strong>Order #@Model.OrderNumber</strong>
+    </div>
+
+    <!-- ═══ ORDER STATUS BANNER ══════════════════════════════ -->
+    <div style="background:#fff; border:1px solid #e5e5e5; border-radius:6px; padding:16px 20px; margin-bottom:12px; display:flex; align-items:center; gap:14px;">
+        <i class="bi @statusIcon" style="font-size:2rem; color: @(Model.Status == OrderStatus.Delivered ? "var(--green)" : Model.Status == OrderStatus.Cancelled ? "var(--red)" : "var(--amazon-dark)");"></i>
+        <div>
+            <h2 style="font-size:1.1rem; font-weight:700; margin-bottom:2px;">
+                @(Model.Status == OrderStatus.Delivered ? "Delivered" :
+                                Model.Status == OrderStatus.Shipped ? "On the way" :
+                                Model.Status == OrderStatus.Processing ? "Being prepared" :
+                                Model.Status == OrderStatus.Cancelled ? "Cancelled" : "Order Placed")
+            </h2>
+            <p style="font-size:.82rem; color:var(--text-secondary); margin:0;">
+                Order #<strong>@Model.OrderNumber</strong> · Placed on @Model.OrderDate.ToString("MMMM d, yyyy")
+                · <span class="status-badge @statusClass">@Model.Status</span>
+            </p>
+        </div>
+    </div>
+
+    <!-- Progress Tracker (if not cancelled) -->
+    @if (Model.Status != OrderStatus.Cancelled)
+    {
+        <div style="background:#fff; border:1px solid #e5e5e5; border-radius:6px; padding:20px; margin-bottom:12px;">
+            @{
+                var steps = new[] { "Pending", "Processing", "Shipped", "Delivered" };
+                var currentIdx = (int)Model.Status;
+            }
+            <div style="display:flex; align-items:center; position:relative;">
+                @for (int s = 0; s < steps.Length; s++)
+                {
+                    var done = s <= currentIdx;
+                    <div style="flex:1; display:flex; flex-direction:column; align-items:center; position:relative; z-index:1;">
+                        <div style="width:32px; height:32px; border-radius:50%; background:@(done ? "var(--amazon-yellow)" : "#e5e5e5"); border:2px solid @(done ? "var(--amazon-orange)" : "#ccc"); display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:700; color:@(done ? "var(--amazon-dark)" : "#999");">
+                            @(done ? "✓" : (s + 1).ToString())
+                        </div>
+                        <div style="margin-top:6px; font-size:.72rem; font-weight:@(done ? "700" : "400"); color:@(done ? "var(--text-primary)" : "var(--text-secondary)");">
+                            @steps[s]
+                        </div>
+                    </div>
+                    if (s < steps.Length - 1)
+                    {
+                        <div style="flex:1; height:2px; background:@(s < currentIdx ? "var(--amazon-orange)" : "#e5e5e5"); margin-top:-20px; position:relative; z-index:0;"></div>
+                    }
+                }
+            </div>
+        </div>
+    }
+
+    <div style="display:grid; grid-template-columns:1fr 300px; gap:12px; align-items:start;">
+
+        <!-- ═══ ORDER ITEMS ══════════════════════════════════ -->
+        <div>
+            <div style="background:#fff; border:1px solid #e5e5e5; border-radius:6px; overflow:hidden; margin-bottom:12px;">
+                <div style="padding:12px 20px; border-bottom:1px solid #e5e5e5; font-weight:700; font-size:.9rem;">
+                    <i class="bi bi-box-seam me-2"></i>Order Items
+                </div>
+
+                @foreach (var item in Model.OrderItems)
+                {
+                    <div style="padding:16px 20px; border-bottom:1px solid #f0f0f0; display:grid; grid-template-columns:70px 1fr auto; gap:14px; align-items:start;">
+                        <div style="width:70px; height:70px; border:1px solid #e5e5e5; border-radius:4px; display:flex; align-items:center; justify-content:center;">
+                            <i class="bi bi-box-seam" style="color:#ccc; font-size:1.8rem;"></i>
+                        </div>
+                        <div>
+                            <a asp-controller="Category" asp-action="Details" asp-route-id="@item.ProductId"
+                               style="font-size:.9rem; font-weight:600; color:#007185; text-decoration:none;">
+                                @item.ProductName
+                            </a>
+                            <div style="font-size:.75rem; color:var(--text-secondary); margin-top:3px;">SKU: @item.SKU</div>
+                            <div style="font-size:.78rem; color:var(--text-secondary); margin-top:2px;">
+                                Qty: <strong>@item.Quantity</strong> × EGP @item.UnitPrice.ToString("N0")
+                            </div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-weight:700; font-size:.95rem;">EGP @item.LineTotal.ToString("N0")</div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Shipping Address -->
+            <div style="background:#fff; border:1px solid #e5e5e5; border-radius:6px; padding:16px 20px;">
+                <h3 style="font-size:.9rem; font-weight:700; margin-bottom:10px;">
+                    <i class="bi bi-geo-alt me-2"></i>Shipping Address
+                </h3>
+                <div style="font-size:.85rem; line-height:1.7; color:var(--text-secondary);">
+                    <strong style="color:var(--text-primary);">@Model.CustomerName</strong><br />
+                    @Model.ShippingAddress.Street<br />
+                    @Model.ShippingAddress.City, @Model.ShippingAddress.Country @Model.ShippingAddress.Zip
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ ORDER SUMMARY ════════════════════════════════ -->
+        <div style="position:sticky; top:70px;">
+            <div style="background:#fff; border:1px solid #e5e5e5; border-radius:6px; overflow:hidden; margin-bottom:12px;">
+                <div style="padding:12px 16px; border-bottom:1px solid #e5e5e5; font-weight:700; font-size:.9rem;">Order Summary</div>
+                <div style="padding:14px 16px; font-size:.82rem; display:flex; flex-direction:column; gap:7px; color:var(--text-secondary);">
+                    <div style="display:flex; justify-content:space-between;">
+                        <span>Items (@Model.TotalItems):</span>
+                        <span style="color:var(--text-primary);">EGP @Model.SubTotal.ToString("N0")</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between;">
+                        <span>Shipping:</span>
+                        <span style="color:var(--green);">FREE</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between;">
+                        <span>VAT (14%):</span>
+                        <span style="color:var(--text-primary);">EGP @Model.Tax.ToString("N0")</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-weight:700; font-size:.95rem; color:var(--red); border-top:1px solid #e5e5e5; padding-top:8px; margin-top:4px;">
+                        <span>Order Total:</span>
+                        <span>EGP @Model.Total.ToString("N0")</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer Info -->
+            <div style="background:#fff; border:1px solid #e5e5e5; border-radius:6px; padding:14px 16px; margin-bottom:12px; font-size:.82rem;">
+                <h3 style="font-size:.88rem; font-weight:700; margin-bottom:8px;">Customer</h3>
+                <div style="color:var(--text-secondary); line-height:1.7;">
+                    <div><strong style="color:var(--text-primary);">@Model.CustomerName</strong></div>
+                    <div>@Model.CustomerEmail</div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div style="display:flex; flex-direction:column; gap:8px;">
+                <a asp-controller="Orders" asp-action="Index" class="btn-secondary-shop" style="text-align:center; padding:9px;">
+                    ← Back to Orders
+                </a>
+                @if (Model.Status == OrderStatus.Pending)
+                {
+                    <button class="btn-secondary-shop" style="border:none; cursor:pointer; color:var(--red); font-family:'Cairo',sans-serif; text-align:center; padding:9px;">
+                        Cancel Order
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+</div>
